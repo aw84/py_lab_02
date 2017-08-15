@@ -30,6 +30,12 @@
     <Compile Include="admin\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="analytics\Summation.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="analytics\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Entry.py">
       <SubType>Code</SubType>
     </Compile>
@@ -40,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="admin\" />
+    <Folder Include="analytics\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.6-32" />

@@ -1,8 +1,27 @@
 import sqlite3
 import uuid
+import Entry
 
 
 db_file = 'db.sqlite3'
+
+
+class Repository(object):
+    def __init__(self):
+        self.conn = sqlite3.connect(db_file)
+        self.cur = self.conn.cursor()
+    def find(self, begin, end):
+        query = '''select t.oid,t.tr_date,t.amount,t.saldo_after_tr from transactions t where t.tr_date >= ? and t.tr_date < ?'''
+        self.cur.execute(query, [begin, end])
+        entries = []
+        row = self.cur.fetchone()
+        while row is not None:
+            e = Entry.Entry()
+            e.from_db(row)
+            entries.append(e)
+            row = self.cur.fetchone()
+        return entries
+
 
 class TransferRepository:
     def __init__(self):

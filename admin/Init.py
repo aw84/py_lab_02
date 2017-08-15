@@ -23,7 +23,7 @@ class Init(object):
 def create_new_database():
     if os.path.isfile(db_file):
         os.remove(db_file)
-        print("removed" + db_file, flush=True)
+        print("Removed: " + db_file, flush=True)
     Init().create_database()
 
 
@@ -32,6 +32,7 @@ def load_account_numbers(csv_reader):
         if len(r) == 9:
             try:
                 e = Entry.create(r)
+                e.from_csv(r)
                 repository = e.repository()
                 repository.add(e)
             except Exception as ex:
