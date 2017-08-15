@@ -26,8 +26,12 @@ class Entry:
     def from_db(self, row):
         self.oid_ = row[0]
         self.transaction_date = row[1]
-        self.amount_ = float(row[2])
-        self.saldo_after_transaction_ = float(row[3])
+        self.account_date = row[2]
+        self.entry_type = row[3]
+        self.title_ = row[4]
+        self.account_number = row[5]
+        self.amount_ = float(row[6])
+        self.saldo_after_transaction_ = float(row[7])
         return self
     def oid(self, oid=None):
         if oid is None:

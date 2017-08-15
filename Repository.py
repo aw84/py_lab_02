@@ -11,13 +11,14 @@ class Repository(object):
         self.conn = sqlite3.connect(db_file)
         self.cur = self.conn.cursor()
     def find(self, begin, end):
-        query = '''select t.oid,t.tr_date,t.amount,t.saldo_after_tr from transactions t where t.tr_date >= ? and t.tr_date < ?'''
+        query = '''select t.oid,t.tr_date,td.tr_date,td.type,td.title,ifnull(an.number, null),t.amount,t.saldo_after_tr from transactions t join transaction_details td on t.oid=td.tr_oid left join transfer_log tl on t.oid=tl.tr_oid left join account_numbers an on tl.acc_oid=an.oid where t.tr_date >= ? and t.tr_date < ? order by t.tr_date'''
         self.cur.execute(query, [begin, end])
         entries = []
         row = self.cur.fetchone()
         while row is not None:
             e = Entry.Entry()
             e.from_db(row)
+            # print((e.date(),e.amount(),e.title(),e.acc_number()), flush=True)
             entries.append(e)
             row = self.cur.fetchone()
         return entries
