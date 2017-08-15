@@ -14,12 +14,8 @@ if __name__ == '__main__':
     if options.initialize is True:
         create_new_database()
 
-    if options.csv_data_in is None:
-        print("missing input filename")
-        exit(1)
-    
-    csv_data_in = options.csv_data_in
-
-    with open(csv_data_in, newline='', encoding='ansi') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=';', quotechar='"')
-        load_account_numbers(csv_reader)
+    if options.csv_data_in is not None:
+        csv_data_in = options.csv_data_in
+        with open(csv_data_in, newline='', encoding='ansi') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=';', quotechar='"')
+            load_account_numbers(csv_reader)
