@@ -2,7 +2,7 @@ import csv
 import optparse
 from datetime import date
 
-from admin.Init import load_account_numbers, create_new_database
+from admin.Init import load_from_csv, create_new_database
 import analytics.Summation
 
 
@@ -17,9 +17,13 @@ if __name__ == '__main__':
         csv_data_in = options.csv_data_in
         with open(csv_data_in, newline='', encoding='ansi') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=';', quotechar='"')
-            load_account_numbers(csv_reader)
+            load_from_csv(csv_reader)
     s = analytics.Summation.Summation()
-    start_date = date(2017, 7, 1)
-    end_date = date(2017, 8, 1)
-    sum = s.sum(start_date, end_date)
-    print((start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'), sum))
+    for i in range(1,13,1):
+        print((i, s.sum_month(2017, i)))
+    print(s.sum_year(2017))
+    all_sum = 0
+    for y in range(2011, 2018, 1):
+        year_sum = s.sum_year(y)
+        all_sum += year_sum
+        print((y, year_sum, all_sum))

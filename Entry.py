@@ -1,4 +1,5 @@
 import Repository
+from enum import Enum
 
 
 class Entry:
@@ -156,22 +157,64 @@ class MokazjeTransaction(Entry):
         raise Exception("MokazjeRepository not implemented")
 
 
-def create(row):
-    if row[2] == 'PRZELEW ZEWNĘTRZNY WYCHODZĄCY' or row[2] == 'PRZELEW MTRANSFER WYCHODZACY' or row[2] == 'PRZELEW WEWNĘTRZNY WYCHODZĄCY':
-        return TransferOut()
-    if row[2] == 'ZAKUP PRZY UŻYCIU KARTY':
-        return CartTransaction()
-    if row[2] == 'PRZELEW ZEWNĘTRZNY PRZYCHODZĄCY':
-        return TransferIn()
-    if row[2] == '#Opis operacji':
-        return MetaDescription()
-    if row[2] == 'WYPŁATA W BANKOMACIE':
-        return AtmTransaction()
-    if row[2] == 'BLIK ZAKUP E-COMMERCE':
-        return BlikTransaction()
-    if row[2] == 'MOKAZJE UZNANIE':
-        return MokazjeTransaction()
-    other = ['OPŁATA ZA KARTĘ', 'MOKAZJE KOREKTA', 'POS ZWROT TOWARU', 'POS ZWROT TOWARU', 'OPŁATA-PRZELEW WEWN. DOWOLNY', 'RĘCZNE UZNANIE']
-    if row[2] in other:
-        return OtherTransaction()
-    raise Exception('`'+row[2]+'\'')
+class EntryFactory(object):
+    def from_csv(self, line):
+        operation_name = line[2]
+        ot = OperationMap[operation_name]
+        if ot == OperationType.TRANSFER_OUT:
+            e = TransferOut()
+        elif ot == OperationType.CART_TRANSACTION:
+            e = CartTransaction()
+        elif ot == OperationType.TRANSFER_IN:
+            e = TransferIn()
+        elif ot == OperationType.META_DESCRIPTION:
+            e = MetaDescription()
+        elif ot == OperationType.ATM_TRANSACTION:
+            e = AtmTransaction()
+        elif ot == OperationType.BLIK_TRANSACTION:
+            e = BlikTransaction()
+        elif ot == OperationType.MOKAZJE_TRANSACTION:
+            e = MokazjeTransaction()
+        elif ot == OperationType.OTHER:
+            e = OtherTransaction()
+        else:
+            raise Exception('`' + operation_name + '\'')
+        e.from_csv(line)
+        return e
+    def from_db(row):
+        pass
+
+
+class OperationType(Enum):
+    TRANSFER_OUT = 1,
+    CART_TRANSACTION = 2,
+    TRANSFER_IN = 3,
+    META_DESCRIPTION = 4,
+    ATM_TRANSACTION = 5,
+    BLIK_TRANSACTION = 6,
+    MOKAZJE_TRANSACTION = 7,
+    OTHER = 9999
+
+
+OperationMap = {
+    'PRZELEW ZEWNĘTRZNY WYCHODZĄCY': OperationType.TRANSFER_OUT,
+    'PRZELEW MTRANSFER WYCHODZACY': OperationType.TRANSFER_OUT,
+    'PRZELEW WEWNĘTRZNY WYCHODZĄCY': OperationType.TRANSFER_OUT,
+    'ZAKUP PRZY UŻYCIU KARTY': OperationType.CART_TRANSACTION,
+    'PRZELEW ZEWNĘTRZNY PRZYCHODZĄCY': OperationType.TRANSFER_IN,
+    '#Opis operacji': OperationType.META_DESCRIPTION,
+    'WYPŁATA W BANKOMACIE': OperationType.ATM_TRANSACTION,
+    'BLIK ZAKUP E-COMMERCE': OperationType.BLIK_TRANSACTION,
+    'MOKAZJE UZNANIE': OperationType.MOKAZJE_TRANSACTION,
+    'OPŁATA ZA KARTĘ': OperationType.OTHER,
+    'MOKAZJE KOREKTA': OperationType.OTHER,
+    'POS ZWROT TOWARU': OperationType.OTHER,
+    'POS ZWROT TOWARU': OperationType.OTHER,
+    'OPŁATA-PRZELEW WEWN. DOWOLNY': OperationType.OTHER,
+    'RĘCZNE UZNANIE': OperationType.OTHER,
+    }
+
+
+def create_from_csv(line):
+    f = EntryFactory()
+    return f.from_csv(line)

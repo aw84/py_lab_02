@@ -27,12 +27,11 @@ def create_new_database():
     Init().create_database()
 
 
-def load_account_numbers(csv_reader):
+def load_from_csv(csv_reader):
     for r in csv_reader:
         if len(r) == 9:
             try:
-                e = Entry.create(r)
-                e.from_csv(r)
+                e = Entry.create_from_csv(r)
                 repository = e.repository()
                 repository.add(e)
             except Exception as ex:
