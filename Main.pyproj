@@ -43,10 +43,20 @@
     <Compile Include="Repository.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test\ReadEntryFromCsvTest.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\ReadEntryFromDbTest.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="test\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="admin\" />
     <Folder Include="analytics\" />
+    <Folder Include="test\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.6-32" />
