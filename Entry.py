@@ -31,8 +31,8 @@ class Entry:
         self.entry_type = row[3]
         self.title_ = row[4]
         self.account_number = row[5]
-        self.amount_ = float(row[6])
-        self.saldo_after_transaction_ = float(row[7])
+        self.amount_ = row[6]
+        self.saldo_after_transaction_ = row[7]
         return self
     def oid(self, oid=None):
         if oid is None:
