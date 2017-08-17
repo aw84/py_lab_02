@@ -36,6 +36,9 @@
     <Compile Include="analytics\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Database.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Entry.py">
       <SubType>Code</SubType>
     </Compile>
