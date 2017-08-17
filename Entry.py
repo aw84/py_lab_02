@@ -178,7 +178,7 @@ class EntryFactory(object):
         elif ot == OperationType.OTHER:
             e = OtherTransaction()
         else:
-            raise Exception('`' + operation_name + '\'')
+            raise Exception('Unknown opration type: `' + operation_name + '\'')
         e.from_csv(line)
         return e
     def from_db(row):

@@ -1,23 +1,37 @@
-import sqlite3
 import Entry
 import uuid
 import os
+import Database
+
 
 db_file = 'db.sqlite3'
 
 class Init(object):
     @staticmethod
     def create_database():
-        conn = sqlite3.connect(db_file)
-        cur = conn.cursor()
-        cur.execute('''CREATE TABLE trans_desc_orig(id integer, desc text)''')
-        cur.execute('''CREATE UNIQUE INDEX trans_desc_id_idx ON trans_desc_orig(id)''')
-        cur.execute('''CREATE TABLE account_numbers(oid text, number text)''')
-        cur.execute('''CREATE UNIQUE INDEX account_numbers_oid_idx ON account_numbers(oid)''')
-        cur.execute('''CREATE UNIQUE INDEX account_numbers_number_idx ON account_numbers(number)''')
-        cur.execute('''CREATE TABLE transactions(oid text, tr_date date, amount real, saldo_after_tr real)''')
-        cur.execute('''CREATE TABLE transaction_details(tr_oid text, type text, title text, tr_date date)''')
-        cur.execute('''CREATE TABLE transfer_log(tr_oid text, acc_oid text)''')
+        db = Database.Database(db_file)
+        s = db.statement('''CREATE TABLE account_numbers(oid text, number text)''')
+        s.execute()
+        s = db.statement('''CREATE UNIQUE INDEX account_numbers_oid_idx ON account_numbers(oid)''')
+        s.execute()
+        s = db.statement('''CREATE UNIQUE INDEX account_numbers_number_idx ON account_numbers(number)''')
+        s.execute()
+        s = db.statement('''CREATE TABLE transactions(oid text, tr_date date, amount real, saldo_after_tr real)''')
+        s.execute()
+        s = db.statement('''CREATE UNIQUE INDEX transactions_oid_idx ON transactions(oid)''')
+        s.execute()
+        s = db.statement('''CREATE INDEX transactions_tr_date_idx ON transactions(tr_date)''')
+        s.execute()
+        s = db.statement('''CREATE INDEX transactions_amount_idx ON transactions(amount)''')
+        s.execute()
+        s = db.statement('''CREATE INDEX transactions_saldo_after_tr_idx ON transactions(saldo_after_tr)''')
+        s.execute()
+        s = db.statement('''CREATE TABLE transaction_details(tr_oid text, type text, title text, tr_date date)''')
+        s.execute()
+        s = db.statement('''CREATE UNIQUE INDEX transaction_details_tr_oid_idx ON transaction_details(tr_oid)''')
+        s.execute()
+        s = db.statement('''CREATE TABLE transfer_log(tr_oid text, acc_oid text)''')
+        s.execute()
 
 
 def create_new_database():
@@ -30,12 +44,18 @@ def create_new_database():
 def load_from_csv(csv_reader):
     for r in csv_reader:
         if len(r) == 9:
+            if r[6] == '#Saldo końcowe':
+                continue
             try:
                 e = Entry.create_from_csv(r)
                 repository = e.repository()
                 repository.add(e)
             except Exception as ex:
                 print(ex, flush=True)
+                if str(ex) == 'MetaRepository not implemented' or str(ex) == 'OtherRepository not implemented' or str(ex) == 'BlikRepository not implemented' or str(ex) == 'MokazjeRepository not implemented':
+                    pass
+                else:
+                    raise ex
 
 
 if __name__ == '__main__':

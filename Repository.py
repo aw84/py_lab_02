@@ -1,33 +1,32 @@
-import sqlite3
 import uuid
 import Entry
+import Database
 
 
 db_file = 'db.sqlite3'
 
 
 class Repository(object):
-    def __init__(self):
-        self.conn = sqlite3.connect(db_file)
-        self.cur = self.conn.cursor()
     def find(self, begin, end):
         query = '''select t.oid,t.tr_date,td.tr_date,td.type,td.title,ifnull(an.number, null),t.amount,t.saldo_after_tr from transactions t join transaction_details td on t.oid=td.tr_oid left join transfer_log tl on t.oid=tl.tr_oid left join account_numbers an on tl.acc_oid=an.oid where t.tr_date >= ? and t.tr_date < ? order by t.tr_date'''
-        self.cur.execute(query, [begin, end])
+        db = Database.Database(db_file)
+        stmt = db.statement(query)
+        stmt.execute((begin, end))
         entries = []
-        row = self.cur.fetchone()
+        row = stmt.next()
         while row is not None:
             e = Entry.Entry()
-            e.from_db(row)
-            # print((e.date(),e.amount(),e.title(),e.acc_number()), flush=True)
+            r = [row.get_string(), row.get_date(), row.get_date(), row.get_string(), row.get_string(),
+                 row.get_string(), row.get_float(), row.get_float()]
+            e.from_db(r)
             entries.append(e)
-            row = self.cur.fetchone()
+            row = stmt.next()
         return entries
 
 
 class TransferRepository:
     def __init__(self):
-        self.conn = sqlite3.connect(db_file)
-        self.cur = self.conn.cursor()
+        self.db = Database.Database(db_file)
     def add(self, transfer_entry):
         account_number = transfer_entry.acc_number()
         acc_oid = ''
@@ -45,52 +44,59 @@ class TransferRepository:
             tr_oid = self.insert_transaction(acc_oid, date, amount, saldo, type, title)
         except Exception as ex:
             print(ex, flush=True)
-            self.conn.rollback()
-        self.conn.commit()
+            self.db.rollback()
+        self.db.commit()
 
     def insert_account(self, account_number):
         if not account_number.isdigit():
             raise Exception("Bad account number `%s'"%(account_number))
         oid = uuid.uuid4().hex
         query = '''INSERT INTO account_numbers(oid, number) VALUES(?,?)'''
-        self.cur.execute(query, [oid, account_number])
+        stmt = self.db.statement(query)
+        stmt.execute((oid, account_number))
+        row = stmt.next()
         return oid
     def select_account_oid(self, account_number):
         query = '''SELECT oid FROM account_numbers WHERE number = ?'''
-        self.cur.execute(query, [account_number])
-        row = self.cur.fetchone()
-        return row[0]
+        stmt = self.db.statement(query)
+        stmt.execute([account_number])
+        row = stmt.next()
+        return row.get_string()
     def insert_transaction(self, acc_oid, date, amount, saldo_after_tr, type, title):
         query = '''select oid from transactions where tr_date = ? and amount = ? and saldo_after_tr = ?'''
-        self.cur.execute(query, (date, amount, saldo_after_tr))
-        r = self.cur.fetchall()
-        if len(r) > 0:
+        stmt = self.db.statement(query)
+        stmt.execute((date, amount, saldo_after_tr))
+        r = stmt.next()
+        if r is not None:
             raise Exception("Double insert     e r r o r")
         tr_oid = uuid.uuid4().hex
         query = '''INSERT INTO transactions(oid,tr_date,amount,saldo_after_tr) VALUES(?,?,?,?)'''
-        self.cur.execute(query, (tr_oid, date, amount, saldo_after_tr))
+        stmt = self.db.statement(query)
+        stmt.execute((tr_oid, date, amount, saldo_after_tr))
         query = '''INSERT INTO transaction_details(tr_oid,type,title) VALUES(?,?,?)'''
-        self.cur.execute(query, (tr_oid, type, title))
+        stmt = self.db.statement(query)
+        stmt.execute((tr_oid, type, title))
         query = '''INSERT INTO transfer_log(tr_oid,acc_oid) VALUES(?,?)'''
-        self.cur.execute(query, (tr_oid, acc_oid))
+        stmt = self.db.statement(query)
+        stmt.execute((tr_oid, acc_oid))
         return tr_oid
 
 class BaseRepository:
     def __init__(self):
-        self.conn = sqlite3.connect(db_file)
-        self.cur = self.conn.cursor()
+        self.db = Database.Database(db_file)
     def add(self, cart_entry):
         try:
             tr_oid = self.insert_transaction(cart_entry)
         except Exception as ex:
             print(ex, flush=True)
-            self.conn.rollback()
-        self.conn.commit()
+            self.db.rollback()
+        self.db.commit()
     def prevent_double_insert(self, e):
         query = '''select oid from transactions where tr_date = ? and amount = ? and saldo_after_tr = ?'''
-        self.cur.execute(query, (e.date(), e.amount(), e.saldo_after_transaction()))
-        r = self.cur.fetchall()
-        if len(r) > 0:
+        stmt = self.db.statement(query)
+        stmt.execute((e.date(), e.amount(), e.saldo_after_transaction()))
+        r = stmt.next()
+        if r is not None:
             raise Exception("Double insert     e r r o r")
     def extract_date_from_title(self, e):
         str = 'DATA TRANSAKCJI: '
@@ -104,10 +110,12 @@ class BaseRepository:
         self.prevent_double_insert(e)
         tr_oid = uuid.uuid4().hex
         query = '''INSERT INTO transactions(oid,tr_date,amount,saldo_after_tr) VALUES(?,?,?,?)'''
-        self.cur.execute(query, (tr_oid, e.date(), e.amount(), e.saldo_after_transaction()))
+        stmt = self.db.statement(query)
+        stmt.execute((tr_oid, e.date(), e.amount(), e.saldo_after_transaction()))
         tr_date, base_title = self.extract_date_from_title(e)
         query = '''INSERT INTO transaction_details(tr_oid,type,title,tr_date) VALUES(?,?,?,?)'''
-        self.cur.execute(query, (tr_oid, e.type(), base_title, tr_date))
+        stmt = self.db.statement(query)
+        stmt.execute((tr_oid, e.type(), base_title, tr_date))
         return tr_oid
 
 
