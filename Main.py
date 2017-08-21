@@ -6,6 +6,9 @@ from admin.Init import load_from_csv, create_new_database
 import analytics.Summation
 
 
+def f2s(f):
+    return '%10.2f' % f
+
 if __name__ == '__main__':
     parser = optparse.OptionParser()
     parser.add_option("-f", "--file", help="CSV input file", dest="csv_data_in")
@@ -19,11 +22,14 @@ if __name__ == '__main__':
             csv_reader = csv.reader(csv_file, delimiter=';', quotechar='"')
             load_from_csv(csv_reader)
     s = analytics.Summation.Summation()
+    ytd = 0.0
     for i in range(1,13,1):
-        print((i, s.sum_month(2017, i)))
-    print(s.sum_year(2017))
+        m = s.sum_month(2017, i)
+        ytd += m
+        print('%2d' % i, f2s(m), f2s(ytd))
+    print(f2s(s.sum_year(2017)))
     all_sum = 0
     for y in range(2011, 2018, 1):
         year_sum = s.sum_year(y)
         all_sum += year_sum
-        print((y, year_sum, all_sum))
+        print(y, f2s(year_sum), f2s(all_sum))

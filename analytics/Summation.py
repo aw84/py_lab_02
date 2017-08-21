@@ -1,12 +1,15 @@
 from datetime import date
 
+import Entry
 import Repository
 
 
 class TransactionService(object):
+    def __init__(self, **kwargs):
+        self.repository = Repository.Repository()
+        return super().__init__(**kwargs)
     def find(self, begin, end):
-        return Repository.Repository().find(begin, end)
-
+        return self.repository.find(begin, end)
 
 class Summation(object):
     """description of class"""
