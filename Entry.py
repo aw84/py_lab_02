@@ -136,7 +136,7 @@ class BlikTransaction(Entry):
     def from_db(self, row):
         return super().from_db(row)
     def repository(self):
-        raise Exception("BlikRepository not implemented")
+        return Repository.BaseRepository()
 
 
 class OtherTransaction(Entry):
@@ -147,14 +147,18 @@ class OtherTransaction(Entry):
     def from_db(self, row):
         return super().from_db(row)
     def repository(self):
-        raise Exception("OtherRepository not implemented")
+        return Repository.BaseRepository()
 
 
 class MokazjeTransaction(Entry):
     def __init__(self):
         super().__init__()
+    def from_csv(self, line):
+        return super().from_csv(line)
+    def from_db(self, row):
+        return super().from_db(row)
     def repository(self):
-        raise Exception("MokazjeRepository not implemented")
+        return Repository.BaseRepository()
 
 
 class EntryFactory(object):

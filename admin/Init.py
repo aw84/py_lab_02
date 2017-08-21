@@ -52,7 +52,7 @@ def load_from_csv(csv_reader):
                 repository.add(e)
             except Exception as ex:
                 print(ex, flush=True)
-                if str(ex) == 'MetaRepository not implemented' or str(ex) == 'OtherRepository not implemented' or str(ex) == 'BlikRepository not implemented' or str(ex) == 'MokazjeRepository not implemented':
+                if str(ex) == 'MetaRepository not implemented':
                     pass
                 else:
                     raise ex
