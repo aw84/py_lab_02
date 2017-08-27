@@ -34,6 +34,8 @@ class Statement(object):
             self.cursor.execute(self.query, params)
         else:
             self.cursor.execute(self.query)
+    def executescript(self, script):
+        self.cursor.executescript(script)
     def next(self):
         r = self.cursor.fetchone()
         if r is not None:
@@ -51,3 +53,8 @@ class Database(object, metaclass=Singleton):
         self.connection.commit()
     def rollback(self):
         self.connection.rollback()
+
+# db_file = ':memory:'
+db_file = 'db.sqlite3'
+def database_factory():
+    return Database(db_file)
