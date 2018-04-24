@@ -104,3 +104,6 @@ ENV/
 *.sqlite3
 *.suo
 /.vs/Main/v15/.suo
+
+*.criteria
+*.str
