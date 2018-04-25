@@ -1,7 +1,8 @@
-from datetime import datetime, date
+from datetime import date
 import csv
 import argparse
 
+import settings
 
 from admin.Init import load_from_csv, create_new_database, load_data_from_files
 import analytics.Summation
@@ -13,8 +14,7 @@ from analytics import calcpack
 
 def list_entries(date_begin, date_end):
     ts = analytics.Summation.TransactionService()
-    entries = ts.find(datetime.strptime(date_begin, '%Y-%m-%d').date(),
-                      datetime.strptime(date_end, '%Y-%m-%d').date())
+    entries = ts.find(settings.create_date(date_begin), settings.create_date(date_end))
     for e in entries:
         print(e)
 

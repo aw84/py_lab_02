@@ -1,8 +1,9 @@
+import datetime
 import unittest
-from datetime import datetime
 
 import Entry
 import Repository
+import settings
 
 
 class Command(object):
@@ -58,14 +59,10 @@ class ListCommand(Command):
                 if k == 'count':
                     self.count = int(v)
                 elif k == 'since':
-                    self.since = ListCommand._create_date(v)
+                    self.since = settings.create_date(v)
                 elif k == 'until':
-                    self.until = ListCommand._create_date(v)
+                    self.until = settings.create_date(v)
         self.repository = Repository.Repository()
-
-    @staticmethod
-    def _create_date(string_date):
-        return datetime.strptime(string_date, '%Y-%m-%d').date()
 
     def run(self):
         return self.repository.find(self.since, self.until)
@@ -80,11 +77,11 @@ class CommandParserTest(unittest.TestCase):
 
     def test_list_period_of_time(self):
         since_date = '2017-01-01'
-        until_date = '2017-03-30'
+        until_date = '2017-03-31'
         cmd = Command.create('list since {since} until {until}'.format(since=since_date, until=until_date))
         self.assertTrue(isinstance(cmd, ListCommand))
-        self.assertEqual(cmd.since, datetime.strptime(since_date, '%Y-%m-%d').date())
-        self.assertEqual(cmd.until, datetime.strptime(until_date, '%Y-%m-%d').date())
+        self.assertEqual(cmd.since, datetime.date(2017, 1, 1))
+        self.assertEqual(cmd.until, datetime.date(2017, 3, 31))
         self.assertEqual(cmd.count, 0)
 
     def test_list_entry_types(self):
