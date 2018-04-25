@@ -2,6 +2,7 @@ from datetime import date
 import csv
 import argparse
 
+import Command
 import settings
 
 from admin.Init import load_from_csv, create_new_database, load_data_from_files
@@ -29,6 +30,7 @@ if __name__ == '__main__':
                         dest="csv_file_pattern")
     parser.add_argument("-i", "--initialize", help="create new database", action="store_true",
                         default=False)
+    parser.add_argument("-c", "--command", help="Use command syntax to list entries", dest="command_string")
     options = parser.parse_args()
     if options.initialize is True:
         create_new_database()
@@ -42,6 +44,10 @@ if __name__ == '__main__':
             load_from_csv(csv_reader)
     if options.csv_file_pattern is not None:
         load_data_from_files(options.csv_file_pattern)
+    if options.command_string is not None:
+        cmd = Command.Command.create(options.command_string)
+        [print(i) for i in cmd.run()]
+        exit(0)
 
     list_entries('2018-01-01', '2018-05-01')
     # exit(0)
