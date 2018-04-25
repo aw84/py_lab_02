@@ -38,6 +38,9 @@ class Entry:
         if oid is None:
             return self.oid_
         self.oid_ = oid
+    def __str__(self):
+        s = "%s %10.2f %s" % (self.transaction_date, self.amount_, self.title_)
+        return s
     def print(self):
         print(self.str, flush=True)
     def acc_number(self):
@@ -216,6 +219,7 @@ OperationMap = {
     'POS ZWROT TOWARU': OperationType.OTHER,
     'OPŁATA-PRZELEW WEWN. DOWOLNY': OperationType.OTHER,
     'RĘCZNE UZNANIE': OperationType.OTHER,
+    'PROWIZJA-WYPŁATA BANKOMAT KRAJOWY': OperationType.OTHER
     }
 
 
