@@ -2,11 +2,6 @@ import uuid
 import Entry
 import Database
 
-
-class Criteria(object):
-    pass
-
-
 class Repository(object):
     def __init__(self, **kwargs):
         self.db = Database.database_factory()
