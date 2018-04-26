@@ -13,14 +13,80 @@ CREATE TABLE transaction_category(tr_oid, cat_oid);
 
 
 class DomainObject(object):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.__object_id = None
+
+    @property
+    def object_id(self):
+        return self.__object_id
+
+    @object_id.setter
+    def object_id(self, value):
+        self.__object_id = value
 
 
 class AccountNumber(DomainObject):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.__number = None
+
+    @property
+    def number(self):
+        return self.__number
+
+    @number.setter
+    def number(self, value):
+        self.__number = value
+
+
+class AccountNumberTest(unittest.TestCase):
+    def test_set_object_id(self):
+        a = AccountNumber()
+        a.object_id = 'abc'
+        self.assertEqual('abc', a.object_id)
+
+    def test_set_account_number(self):
+        a = AccountNumber()
+        a.number = 'xyz'
+        self.assertEqual('xyz', a.number)
+
+
+class Transaction(DomainObject):
+    def __init__(self):
+        super().__init__()
+        self.__transaction_date = None
+        self.__amount = None
+        self.__saldo_after = None
+
+    @property
+    def transaction_date(self):
+        return self.__transaction_date
+
+    @transaction_date.setter
+    def transaction_date(self, value):
+        self.__transaction_date = value
+
+    @property
+    def amount(self):
+        return self.__amount
+
+    @amount.setter
+    def amount(self, value):
+        self.__amount = value
+
+    @property
+    def saldo_after(self):
+        return self.__saldo_after
+
+    @saldo_after.setter
+    def saldo_after(self, value):
+        self.__saldo_after = value
 
 
 class DataMap(object):
+    PRIMARY_KEY_FIELD = 'id'
+
     def __init__(self):
         self.table_name = None
         self.fields = {}
@@ -29,7 +95,7 @@ class DataMap(object):
         return self.table_name
 
     def primary_key(self):
-        return self.fields['ID']
+        return self.fields[DataMap.PRIMARY_KEY_FIELD]
 
     def field(self, name):
         return self.fields[name]
@@ -38,8 +104,8 @@ class DataMap(object):
         return ','.join(self.fields.values())
 
     @staticmethod
-    def get(o):
-        if isinstance(o, AccountNumber):
+    def get_mapper(domain_object):
+        if isinstance(domain_object, AccountNumber):
             return DataMapAccountNumber()
 
 
@@ -48,8 +114,8 @@ class DataMapAccountNumber(DataMap):
         super().__init__()
         self.table_name = 'account_numbers'
         self.fields = {
-            'ID': 'OID',
-            'NUMBER': 'NUMBER'
+            DataMap.PRIMARY_KEY_FIELD: 'OID',
+            'number': 'NUMBER'
         }
 
 
@@ -63,7 +129,8 @@ class Criteria(object):
     def __init__(self):
         self.operator = None
 
-    def equal(self, **kwargs):
+    @staticmethod
+    def equal(**kwargs):
         for k, v in kwargs.items():
             return EqualCriteria('=', k, v)
 
@@ -104,17 +171,17 @@ class Repository2(object):
 class DataMapTest(unittest.TestCase):
     def test_creation(self):
         o = AccountNumber()
-        data_map = DataMap.get(o)
+        data_map = DataMap.get_mapper(o)
         self.assertEqual('account_numbers', data_map.get_table_name())
 
     def test_fields_generation(self):
-        data_map = DataMap.get(AccountNumber())
+        data_map = DataMap.get_mapper(AccountNumber())
         self.assertEqual('OID,NUMBER', data_map.get_fields())
 
 
 class CriteriaTest(unittest.TestCase):
     def test_sample(self):
-        criteria = Criteria().equal(number='dddddd')
+        criteria = Criteria.equal(number='dddddd')
         repository = Repository.Repository()
         repository.find_by_criteria(criteria)
         self.assertTrue(True)
@@ -125,8 +192,8 @@ class TestableDataMap(DataMap):
         super().__init__()
         self.table_name = 'test_table_name'
         self.fields = {
-            'APP_NAME1': 'DB_NAME1',
-            'APP_NAME2': 'DB_NAME2'
+            'id': 'DB_NAME1',
+            'filed1': 'DB_NAME2'
         }
 
 
@@ -134,7 +201,5 @@ class RepositoryTests(unittest.TestCase):
     def test_sample(self):
         data_map = TestableDataMap()
         repo = Repository2(data_map)
-        crit = Criteria().equal(APP_NAME1='xxx')
-        crit.str(data_map)
-        ret = repo.find_by_criteria(crit)
+        ret = repo.find_by_criteria(Criteria.equal(id='xxx'))
         self.assertEqual('select DB_NAME1,DB_NAME2 from test_table_name where DB_NAME1=xxx', ret)
