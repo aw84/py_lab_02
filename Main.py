@@ -9,8 +9,7 @@ from admin.Init import load_from_csv, create_new_database, load_data_from_files
 import analytics.Summation
 import analytics.Category
 from analytics import calcpack
-
-
+from settings import f2s
 
 
 def list_entries(date_begin, date_end):
@@ -18,9 +17,6 @@ def list_entries(date_begin, date_end):
     entries = ts.find(settings.create_date(date_begin), settings.create_date(date_end))
     for e in entries:
         print(e)
-
-def f2s(float_value):
-    return '%10.2f' % float_value
 
 
 if __name__ == '__main__':

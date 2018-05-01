@@ -1,43 +1,23 @@
+import decimal
 import unittest
 
 import Repository
+import settings
+from Criteria import Criteria, BetweenCriteria
+from DataMap import DataMap
+from Repository import Repository2
+from domainobject.DomainObject import AccountNumber, Transaction
 
 """
-CREATE TABLE account_numbers(oid text, number text);
 CREATE TABLE transactions(oid text, tr_date date, amount real, saldo_after_tr real);
 CREATE TABLE transaction_details(tr_oid text, type text, title text, tr_date date);
+
+CREATE TABLE account_numbers(oid text, number text);
 CREATE TABLE transfer_log(tr_oid text, acc_oid text);
+
 CREATE TABLE categories(oid text, cname text);
 CREATE TABLE transaction_category(tr_oid, cat_oid);
 """
-
-
-class DomainObject(object):
-    def __init__(self):
-        super().__init__()
-        self.__object_id = None
-
-    @property
-    def object_id(self):
-        return self.__object_id
-
-    @object_id.setter
-    def object_id(self, value):
-        self.__object_id = value
-
-
-class AccountNumber(DomainObject):
-    def __init__(self):
-        super().__init__()
-        self.__number = None
-
-    @property
-    def number(self):
-        return self.__number
-
-    @number.setter
-    def number(self, value):
-        self.__number = value
 
 
 class AccountNumberTest(unittest.TestCase):
@@ -52,120 +32,24 @@ class AccountNumberTest(unittest.TestCase):
         self.assertEqual('xyz', a.number)
 
 
-class Transaction(DomainObject):
-    def __init__(self):
-        super().__init__()
-        self.__transaction_date = None
-        self.__amount = None
-        self.__saldo_after = None
+class TransactionTests(unittest.TestCase):
+    def test_set_transaction_date(self):
+        t = Transaction()
+        test_date = '2018-04-27'
+        t.transaction_date = settings.create_date(test_date)
+        self.assertEqual(settings.create_date(test_date), t.transaction_date)
 
-    @property
-    def transaction_date(self):
-        return self.__transaction_date
+    def test_set_amount(self):
+        t = Transaction()
+        test_amount = 10.23
+        t.amount = decimal.Decimal(test_amount)
+        self.assertEqual(decimal.Decimal(test_amount), t.amount)
 
-    @transaction_date.setter
-    def transaction_date(self, value):
-        self.__transaction_date = value
-
-    @property
-    def amount(self):
-        return self.__amount
-
-    @amount.setter
-    def amount(self, value):
-        self.__amount = value
-
-    @property
-    def saldo_after(self):
-        return self.__saldo_after
-
-    @saldo_after.setter
-    def saldo_after(self, value):
-        self.__saldo_after = value
-
-
-class DataMap(object):
-    PRIMARY_KEY_FIELD = 'id'
-
-    def __init__(self):
-        self.table_name = None
-        self.fields = {}
-
-    def get_table_name(self):
-        return self.table_name
-
-    def primary_key(self):
-        return self.fields[DataMap.PRIMARY_KEY_FIELD]
-
-    def field(self, name):
-        return self.fields[name]
-
-    def get_fields(self):
-        return ','.join(self.fields.values())
-
-    @staticmethod
-    def get_mapper(domain_object):
-        if isinstance(domain_object, AccountNumber):
-            return DataMapAccountNumber()
-
-
-class DataMapAccountNumber(DataMap):
-    def __init__(self):
-        super().__init__()
-        self.table_name = 'account_numbers'
-        self.fields = {
-            DataMap.PRIMARY_KEY_FIELD: 'OID',
-            'number': 'NUMBER'
-        }
-
-
-class Criteria(object):
-    """
-    criteria = Criteria.equal(title='some string')
-    repository = Repository()
-    objects_list = repository.find_by_criteria(criteria)
-    """
-
-    def __init__(self):
-        self.operator = None
-
-    @staticmethod
-    def equal(**kwargs):
-        for k, v in kwargs.items():
-            return EqualCriteria('=', k, v)
-
-    def str(self, data_map):
-        pass
-
-
-class EqualCriteria(Criteria):
-    def __init__(self, op, field, value):
-        super().__init__()
-        self.operator = op
-        self.field = field
-        self.value = value
-
-    def str(self, data_map):
-        return '{field}{operator}{value}'.format(field=data_map.field(self.field), operator=self.operator,
-                                                 value=self.value)
-
-
-class Repository2(object):
-    def __init__(self, data_map):
-        self.data_map = data_map
-
-    def find(self):
-        query = 'select {fields} from {table}'.format(
-            fields=self.data_map.get_fields(), table=self.data_map.get_table_name()
-        )
-        return query
-
-    def find_by_criteria(self, criteria):
-        query = 'select {fields} from {table} where {a_criteria}'.format(
-            fields=self.data_map.get_fields(), table=self.data_map.get_table_name(),
-            a_criteria=criteria.str(self.data_map)
-        )
-        return query
+    def test_set_saldo(self):
+        t = Transaction()
+        test_saldo = 22.3
+        t.saldo_after = decimal.Decimal(test_saldo)
+        self.assertEqual(decimal.Decimal(test_saldo), t.saldo_after)
 
 
 class DataMapTest(unittest.TestCase):
@@ -179,27 +63,39 @@ class DataMapTest(unittest.TestCase):
         self.assertEqual('OID,NUMBER', data_map.get_fields())
 
 
+class TestableDataMap(DataMap):
+    def __init__(self):
+        super().__init__('test_table_name', {
+            'id': 'DB_NAME1',
+            'field1': 'DB_NAME2'
+        })
+
+
 class CriteriaTest(unittest.TestCase):
-    def test_sample(self):
+    def test_equal(self):
         criteria = Criteria.equal(number='dddddd')
         repository = Repository.Repository()
         repository.find_by_criteria(criteria)
         self.assertTrue(True)
 
-
-class TestableDataMap(DataMap):
-    def __init__(self):
-        super().__init__()
-        self.table_name = 'test_table_name'
-        self.fields = {
-            'id': 'DB_NAME1',
-            'filed1': 'DB_NAME2'
-        }
+    def test_between(self):
+        criteria = BetweenCriteria()
+        criteria.add_condition('id', '<', 'value_1')
+        criteria.add_condition('field1', '>', 'value_2')
+        criteria.set_join_function('AND')
+        self.assertEqual('(DB_NAME1<? AND DB_NAME2>?)', criteria.str(TestableDataMap()))
+        self.assertEqual(('value_1', 'value_2'), criteria.values())
 
 
 class RepositoryTests(unittest.TestCase):
-    def test_sample(self):
+    def test_query_preparation_with_criteria(self):
         data_map = TestableDataMap()
         repo = Repository2(data_map)
-        ret = repo.find_by_criteria(Criteria.equal(id='xxx'))
+        ret = repo.query_preparation(Criteria.equal(id='xxx'))
         self.assertEqual('select DB_NAME1,DB_NAME2 from test_table_name where DB_NAME1=xxx', ret)
+
+    def test_query_preparation(self):
+        data_map = TestableDataMap()
+        repo = Repository2(data_map)
+        ret = repo.query_preparation()
+        self.assertEqual('select DB_NAME1,DB_NAME2 from test_table_name', ret)
